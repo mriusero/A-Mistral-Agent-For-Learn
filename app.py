@@ -1,5 +1,5 @@
 import os
-from src.gradio_ui import create_interface
+from src.gradio_ui import user_interface
 
 if __name__ == "__main__":
     print("\n" + "-"*30 + " App Starting " + "-"*30)
@@ -23,5 +23,5 @@ if __name__ == "__main__":
     print("-"*(60 + len(" App Starting ")) + "\n")
 
     print("Launching Gradio Interface for Basic Agent Evaluation...")
-    demo = create_interface()
+    demo = user_interface()
     demo.launch(debug=True, share=False)
