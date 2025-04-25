@@ -1,0 +1,15 @@
+# OS
+.DS_Store/
+
+# IDE
+.idea/
+
+# Python
+*__pycache__/
+
+# Model
+Qwen2.5-Coder-32B-Instruct-4bit/
+
+# Utils
+agents_final_questions.json
+

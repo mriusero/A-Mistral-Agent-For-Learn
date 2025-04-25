@@ -1,5 +1,5 @@
 import gradio as gr
-from src.agent import BasicAgent
+from src.agent import Agent
 from src.api import fetch_questions, submit_answers
 import pandas as pd
 import os
@@ -13,7 +13,7 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
         print("User not logged in.")
         return "Please Login to Hugging Face with the button.", None
 
-    agent = BasicAgent()
+    agent = Agent()
     agent_code = f"https://huggingface.co/spaces/{space_id}/tree/main"
     print(agent_code)
 
