@@ -6,6 +6,9 @@ import yaml
 from smolagents import CodeAgent, MLXModel, DuckDuckGoSearchTool, load_tool, tool
 
 from src.api import fetch_questions, submit_answers
+from src.tools import WikipediaSearchTool, VisitWebpageTool, FinalAnswerTool
+from src.final_check import validate_answer
+
 
 def run_and_submit_all(profile: gr.OAuthProfile | None):
     space_id = os.getenv("SPACE_ID")
@@ -19,22 +22,37 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
     with open("./prompt.yaml", 'r') as stream:
         prompt_template = yaml.safe_load(stream)
 
-    mlx_model = MLXModel("./Qwen2.5-Coder-32B-Instruct-4bit")
+    # Load the model
+    # mlx_model = MLXModel("./Qwen2.5-Coder-32B-Instruct-4bit") too large for local inference
+    #mlx_model = MLXModel("./Qwen2.5-Coder-14B-Instruct-bf16")
+    mlx_model = MLXModel("./DeepSeek-Coder-V2-Lite-Instruct-8bit")
+
+    # Load tools
+    wikipedia_search_tool = WikipediaSearchTool()
+    web_search = DuckDuckGoSearchTool()
+    visit_webpage = VisitWebpageTool()
+    final_answer = FinalAnswerTool()
+
+
 
     agent = CodeAgent(
         model=mlx_model,
         tools=[
-            DuckDuckGoSearchTool(),
+            web_search,
+            wikipedia_search_tool,
+            visit_webpage,
+            final_answer,
         ],
         add_base_tools=True,
         max_steps=6,
-        verbosity_level=1,
+        verbosity_level=2,
         grammar=None,
         planning_interval=None,
         name=None,
         description=None,
         prompt_templates=prompt_template,
         additional_authorized_imports = ['requests'],
+        final_answer_checks=[validate_answer],
     )
     agent_code = f"https://huggingface.co/spaces/{space_id}/tree/main"
     print(agent_code)
