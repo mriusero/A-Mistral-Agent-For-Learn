@@ -8,9 +8,8 @@
 *__pycache__/
 
 # Model
-Qwen2.5-Coder-32B-Instruct-4bit/
-Qwen2.5-Coder-14B-Instruct-bf16/
-DeepSeek-Coder-V2-Lite-Instruct-8bit/
+llm/
+Attachments/
 
 # Utils
 agents_final_questions.json

@@ -5,8 +5,19 @@ import time
 
 from smolagents import CodeAgent, MLXModel, DuckDuckGoSearchTool
 
-from src.utils import fetch_questions, submit_answers, validate_answer, load_prompt
-from src.tools import WikipediaSearchTool, VisitWebpageTool, FinalAnswerTool
+from src.utils import (
+    fetch_questions,
+    submit_answers,
+    get_file,
+    validate_answer,
+    load_prompt
+)
+from src.tools import (
+    WikipediaSearchTool,
+    VisitWebpageTool,
+    FileLoaderTool,
+    FinalAnswerTool,
+)
 
 
 def run_and_submit_all(profile: gr.OAuthProfile | None):
@@ -18,25 +29,31 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
         print("User not logged in.")
         return "Please Login to Hugging Face with the button.", None
 
-    prompt_template = load_prompt()
-
     # Load the model
-    # mlx_model = MLXModel("./Qwen2.5-Coder-32B-Instruct-4bit") too large for local inference
-    #mlx_model = MLXModel("./Qwen2.5-Coder-14B-Instruct-bf16")
-    mlx_model = MLXModel("./DeepSeek-Coder-V2-Lite-Instruct-8bit")
+    mlx_model = MLXModel(
+    #    "./llm/Qwen2.5-Coder-32B-Instruct-4bit"
+    #    "./llm/Qwen2.5-Coder-14B-Instruct-bf16"
+        "./llm/DeepSeek-Coder-V2-Lite-Instruct-8bit"
+    )
 
     # Load tools
     wikipedia_search_tool = WikipediaSearchTool()
     web_search = DuckDuckGoSearchTool()
     visit_webpage = VisitWebpageTool()
+    file_loader = FileLoaderTool()
     final_answer = FinalAnswerTool()
 
+    # Load prompt template
+    prompt_template = load_prompt()
+
+    # Initialize the agent
     agent = CodeAgent(
         model=mlx_model,
         tools=[
-            web_search,
             wikipedia_search_tool,
+            web_search,
             visit_webpage,
+            file_loader,
             final_answer,
         ],
         add_base_tools=True,
@@ -62,12 +79,21 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
     for item in questions_data:
         task_id = item.get("task_id")
         question_text = item.get("question")
+        file_name = item.get("file_name")
         if not task_id or question_text is None:
             continue
+
+        if file_name != "":
+            file_path = get_file(task_id)
+            add_context = f" You can access to the file here: '{file_path}'."
+        else:
+            add_context = ""
+
         try:
-            submitted_answer = agent.run(question_text)
+            submitted_answer = agent.run(question_text + add_context)
             results_log.append({"Task ID": task_id, "Question": question_text, "Submitted Answer": submitted_answer})
             answers_payload.append({"task_id": task_id, "submitted_answer": submitted_answer})
+
         except Exception as e:
             results_log.append({"Task ID": task_id, "Question": question_text, "Submitted Answer": f"AGENT ERROR: {e}"})
 

@@ -3,3 +3,5 @@ requests
 gradio[oauth]
 smolagents
 wikipedia
+openpyxl
+pydub
