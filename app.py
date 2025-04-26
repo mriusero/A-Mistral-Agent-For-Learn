@@ -1,5 +1,5 @@
 import os
-from src.utils import user_interface
+from src.utils.gradio_ui import user_interface
 
 if __name__ == "__main__":
     print("\n" + "-"*30 + " App Starting " + "-"*30)
