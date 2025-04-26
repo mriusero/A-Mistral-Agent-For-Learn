@@ -1,6 +1,6 @@
 ---
-title: Template Final Assignment
-emoji: 🕵🏻‍♂️
+title: A Mistral Agent
+emoji: 🇫🇷️
 colorFrom: indigo
 colorTo: indigo
 sdk: gradio
@@ -9,6 +9,7 @@ app_file: app.py
 pinned: false
 hf_oauth: true
 hf_oauth_expiration_minutes: 480
+short_description: A Mistral Agent for GAIA Benchmark Level 1.
 ---
 
 Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
