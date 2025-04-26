@@ -2,3 +2,4 @@ gradio
 requests
 gradio[oauth]
 smolagents
+wikipedia

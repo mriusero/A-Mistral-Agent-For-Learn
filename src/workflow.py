@@ -2,12 +2,12 @@ import gradio as gr
 import pandas as pd
 import os
 import yaml
+import time
 
-from smolagents import CodeAgent, MLXModel, DuckDuckGoSearchTool, load_tool, tool
+from smolagents import CodeAgent, MLXModel, DuckDuckGoSearchTool
 
-from src.api import fetch_questions, submit_answers
+from src.utils import fetch_questions, submit_answers, validate_answer, load_prompt
 from src.tools import WikipediaSearchTool, VisitWebpageTool, FinalAnswerTool
-from src.final_check import validate_answer
 
 
 def run_and_submit_all(profile: gr.OAuthProfile | None):
@@ -19,8 +19,7 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
         print("User not logged in.")
         return "Please Login to Hugging Face with the button.", None
 
-    with open("./prompt.yaml", 'r') as stream:
-        prompt_template = yaml.safe_load(stream)
+    prompt_template = load_prompt()
 
     # Load the model
     # mlx_model = MLXModel("./Qwen2.5-Coder-32B-Instruct-4bit") too large for local inference
@@ -33,8 +32,6 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
     visit_webpage = VisitWebpageTool()
     final_answer = FinalAnswerTool()
 
-
-
     agent = CodeAgent(
         model=mlx_model,
         tools=[
@@ -44,7 +41,7 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
             final_answer,
         ],
         add_base_tools=True,
-        max_steps=6,
+        max_steps=30,
         verbosity_level=2,
         grammar=None,
         planning_interval=None,
@@ -74,6 +71,8 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
             answers_payload.append({"task_id": task_id, "submitted_answer": submitted_answer})
         except Exception as e:
             results_log.append({"Task ID": task_id, "Question": question_text, "Submitted Answer": f"AGENT ERROR: {e}"})
+
+        time.sleep(10) # Tempo to avoid throttling
 
     if not answers_payload:
         return "Agent did not produce any answers to submit.", pd.DataFrame(results_log)
