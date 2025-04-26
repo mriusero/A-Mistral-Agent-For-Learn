@@ -2,27 +2,19 @@ import gradio as gr
 import pandas as pd
 import os
 import time
-from dotenv import load_dotenv
-
-from smolagents import CodeAgent, MLXModel, DuckDuckGoSearchTool
+import re
 
 from src.utils import (
     fetch_questions,
     submit_answers,
     get_file,
-    validate_answer,
-    load_prompt
 )
-from src.tools import (
-    WikipediaSearchTool,
-    VisitWebpageTool,
-    FileLoaderTool,
-    FinalAnswerTool,
-)
-
-load_dotenv()
+from src.inference import Agent
 
 def run_and_submit_all(profile: gr.OAuthProfile | None):
+
+    agent = Agent()
+
     space_id = os.getenv("SPACE_ID")
     if profile:
         username = f"{profile.username}"
@@ -31,46 +23,6 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
         print("User not logged in.")
         return "Please Login to Hugging Face with the button.", None
 
-    # Load the model
-    mlx_model = MLXModel(
-        model_id="./llm/Qwen2.5-Coder-14B-Instruct-bf16",
-        tool_name_key='name',                                       # ID for fetch tools
-        tool_arguments_key='inputs',                                # ID for fetch tool arguments
-        trust_remote_code=False,
-        max_tokens=128000
-    )
-
-    # Load tools
-    wikipedia_search_tool = WikipediaSearchTool()
-    web_search = DuckDuckGoSearchTool()
-    visit_webpage = VisitWebpageTool()
-    file_loader = FileLoaderTool()
-    final_answer = FinalAnswerTool()
-
-    # Load prompt template
-    prompt_template = load_prompt()
-
-    # Initialize the agent
-    agent = CodeAgent(
-        model=mlx_model,
-        tools=[
-            wikipedia_search_tool,
-            web_search,
-            visit_webpage,
-            file_loader,
-            final_answer,
-        ],
-        add_base_tools=True,
-        max_steps=30,
-        verbosity_level=5,
-        grammar=None,
-        planning_interval=None,
-        name=None,
-        description=None,
-        prompt_templates=prompt_template,
-        additional_authorized_imports = ['requests', 'bs4', 'wiki'],
-        final_answer_checks=[validate_answer],
-    )
     agent_code = f"https://huggingface.co/spaces/{space_id}/tree/main"
     print(agent_code)
 
@@ -89,19 +41,32 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
 
         if file_name != "":
             file_path = get_file(task_id)
-            add_context = f" You can access to the file here: '{file_path}'."
+            file_context = f" You can access to the file here: '{file_path}'."
         else:
-            add_context = ""
+            file_context = ""
 
         try:
-            submitted_answer = agent.run(question_text + add_context)
+            response = agent.run(input=question_text + file_context)
+            match = re.search(r'FINAL ANSWER:\s*(.*)', response, re.DOTALL)
+
+            if match:
+                submitted_answer = match.group(1).strip()
+            else:
+                submitted_answer = 'Bad response format. No FINAL ANSWER found.'
+
+            print(f"\n ===== Task ID =======\n {task_id}")
+            print(f"\n-- Question --\n",  question_text + file_context)
+            print(f"\n-- Response --\, {response}")
+            print(f"\n-- Submitted Answer --\n", submitted_answer)
+
             results_log.append({"Task ID": task_id, "Question": question_text, "Submitted Answer": submitted_answer})
             answers_payload.append({"task_id": task_id, "submitted_answer": submitted_answer})
 
         except Exception as e:
+            print(f"Error: {e}")
             results_log.append({"Task ID": task_id, "Question": question_text, "Submitted Answer": f"AGENT ERROR: {e}"})
 
-        time.sleep(120) # Tempo to avoid throttling
+        time.sleep(15) # Rate limit for API calls
 
     if not answers_payload:
         return "Agent did not produce any answers to submit.", pd.DataFrame(results_log)
