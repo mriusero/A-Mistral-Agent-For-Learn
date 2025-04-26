@@ -1,6 +1,6 @@
 ---
-title: A Mistral Agent
-emoji: 🇫🇷️
+title: A Mistral Agent 🇫🇷
+emoji: ⚡️
 colorFrom: indigo
 colorTo: indigo
 sdk: gradio
