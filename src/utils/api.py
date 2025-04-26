@@ -12,7 +12,6 @@ def fetch_questions(api_url=DEFAULT_API_URL):
         list: A list of questions if successful, None otherwise.
     """
     questions_url = f"{api_url}/questions"
-    print(f"Fetching questions from: {questions_url}")
     try:
         response = requests.get(questions_url, timeout=15)
         response.raise_for_status()

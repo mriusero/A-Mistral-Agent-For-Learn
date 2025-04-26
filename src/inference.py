@@ -109,7 +109,6 @@ class Agent:
                         function_name = tool_call.function.name
                         function_params = json.loads(tool_call.function.arguments)
                         print("\nfunction_name: ", function_name, "\nfunction_params: ", function_params)
-
                         try:
                             function_result = names_to_functions[function_name](**function_params)
                             print("\nfunction_result: ", function_result)

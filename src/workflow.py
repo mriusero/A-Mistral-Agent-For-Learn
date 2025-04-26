@@ -1,8 +1,11 @@
 import gradio as gr
 import pandas as pd
+import json
 import os
 import time
 import re
+from rich.console import Console
+from rich.panel import Panel
 
 from src.utils import (
     fetch_questions,
@@ -12,19 +15,19 @@ from src.utils import (
 from src.inference import Agent
 
 def run_and_submit_all(profile: gr.OAuthProfile | None):
-
+    console = Console()
     agent = Agent()
     space_id = os.getenv("SPACE_ID")
 
     if profile:
         username = f"{profile.username}"
-        print(f"User logged in: {username}")
+        console.print(f"User logged in: {username}", style="bold green")
     else:
-        print("User not logged in.")
+        console.print("User not logged in.", style="bold red")
         return "Please Login to Hugging Face with the button.", None
 
     agent_code = f"https://huggingface.co/spaces/{space_id}/tree/main"
-    print(agent_code)
+    console.print(agent_code)
 
     questions_data = fetch_questions()
 
@@ -35,7 +38,6 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
     answers_payload = []
 
     for item in questions_data:
-
         task_id = item.get("task_id")
         question_text = item.get("question")
         file_name = item.get("file_name")
@@ -50,28 +52,44 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
             file_context = ""
 
         try:
-            print(f"\n ============= Task ID =============\n {task_id}")
-            print(f"\n-- Question --\n",  question_text + file_context)
+            console.rule(f"\n[bold blue]Task ID: {task_id}")
+            console.print(Panel(f"[bold]Question[/bold]\n{question_text}", expand=False))
+            console.print(Panel(f"[italic]File Context[/italic]\n{file_context}", expand=False))
 
             response = agent.run(input=question_text + file_context)
-            match = re.search(r'FINAL ANSWER:\s*(.*)', response, re.DOTALL)
 
+            # - See Inference.py for intermediate steps
+
+
+            match = re.search(r'FINAL ANSWER:\s*(.*)', response, re.DOTALL)
             if match:
                 submitted_answer = match.group(1).strip()
             else:
                 submitted_answer = 'No FINAL ANSWER found.'
 
-            print(f"\n-- Response --\, {response}")
-            print(f"\n-- Submitted Answer --\n", submitted_answer)
+
+            console.print(Panel(f"[bold]Response[/bold]\n{response}", expand=False))
+
+            # Affichage de la réponse soumise
+            console.print(Panel(f"[bold green]Submitted Answer[/bold green]\n{submitted_answer}", expand=False))
 
             results_log.append({"Task ID": task_id, "Question": question_text, "Submitted Answer": submitted_answer})
             answers_payload.append({"task_id": task_id, "submitted_answer": submitted_answer})
 
+            # Vérification des métadonnées
+            console.rule("[bold yellow]Check")
+            with open('./metadata.jsonl', 'r') as file:
+                for line in file:
+                    item = json.loads(line)
+                    if item.get('task_id') == task_id:
+                        final_answer = item.get('Final answer')
+                        console.print(f"Final answer pour la task_id : [bold]{final_answer}[/bold]")
+
         except Exception as e:
-            print(f"Error: {e}")
+            console.print(f"Error: {e}", style="bold red")
             results_log.append({"Task ID": task_id, "Question": question_text, "Submitted Answer": f"AGENT ERROR: {e}"})
 
-        time.sleep(15) # Rate limit for API calls
+        time.sleep(1) # Rate limit for API calls
 
     if not answers_payload:
         return "Agent did not produce any answers to submit.", pd.DataFrame(results_log)
