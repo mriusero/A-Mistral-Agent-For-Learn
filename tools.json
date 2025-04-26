@@ -1,0 +1,67 @@
+[
+    {
+        "type": "function",
+        "function": {
+            "name": "web_search",
+            "description": "Performs a web search based on the query and returns the top search results.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "The search query to perform."
+                    },
+                    "max_results": {
+                        "type": "integer",
+                        "description": "The maximum number of results to return. Defaults to 10."
+                    },
+                    "timeout": {
+                        "type": "integer",
+                        "description": "Timeout for the search request in seconds. Defaults to 10."
+                    }
+                },
+                "required": [
+                    "query"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "visit_webpage",
+            "description": "Visits a webpage at the given URL and reads its content as a markdown string.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "description": "The URL of the webpage to visit."
+                    }
+                },
+                "required": [
+                    "url"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "load_file",
+            "description": "Loads data from a file based on its extension.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "file_path": {
+                        "type": "string",
+                        "description": "The path to the file to be loaded."
+                    }
+                },
+                "required": [
+                    "file_path"
+                ]
+            }
+        }
+    }
+]

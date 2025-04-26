@@ -50,16 +50,17 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
             file_context = ""
 
         try:
+            print(f"\n ============= Task ID =============\n {task_id}")
+            print(f"\n-- Question --\n",  question_text + file_context)
+
             response = agent.run(input=question_text + file_context)
             match = re.search(r'FINAL ANSWER:\s*(.*)', response, re.DOTALL)
 
             if match:
                 submitted_answer = match.group(1).strip()
             else:
-                submitted_answer = 'Bad response format. No FINAL ANSWER found.'
+                submitted_answer = 'No FINAL ANSWER found.'
 
-            print(f"\n ===== Task ID =======\n {task_id}")
-            print(f"\n-- Question --\n",  question_text + file_context)
             print(f"\n-- Response --\, {response}")
             print(f"\n-- Submitted Answer --\n", submitted_answer)
 

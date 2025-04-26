@@ -1,4 +1,5 @@
 from functools import wraps
+import json
 import inspect
 import re
 
@@ -9,6 +10,10 @@ def generate_tools_json(functions):
     tools = []
     for func in functions:
         tools.append(func.tool_info)
+
+    with open('tools.json', 'w') as file:
+        json.dump(tools, file, indent=4)
+
     return {
         "tools": tools
     }
@@ -35,6 +40,10 @@ def tool(func):
             param_type = "string"
         else:
             param_type = param_type.__name__
+            if param_type == 'str':
+                param_type = 'string'
+            elif param_type == 'int':
+                param_type = 'integer'
 
         param_description = f"The {param_name}."
 
