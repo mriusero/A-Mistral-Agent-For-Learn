@@ -4,6 +4,9 @@
 # IDE
 .idea/
 
+#Secrets
+*.env
+
 # Python
 *__pycache__/
 

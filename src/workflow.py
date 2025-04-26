@@ -2,6 +2,7 @@ import gradio as gr
 import pandas as pd
 import os
 import time
+from dotenv import load_dotenv
 
 from smolagents import CodeAgent, MLXModel, DuckDuckGoSearchTool
 
@@ -19,6 +20,7 @@ from src.tools import (
     FinalAnswerTool,
 )
 
+load_dotenv()
 
 def run_and_submit_all(profile: gr.OAuthProfile | None):
     space_id = os.getenv("SPACE_ID")
@@ -31,9 +33,11 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
 
     # Load the model
     mlx_model = MLXModel(
-    #    "./llm/Qwen2.5-Coder-32B-Instruct-4bit"
-    #    "./llm/Qwen2.5-Coder-14B-Instruct-bf16"
-        "./llm/DeepSeek-Coder-V2-Lite-Instruct-8bit"
+        model_id="./llm/Qwen2.5-Coder-14B-Instruct-bf16",
+        tool_name_key='name',                                       # ID for fetch tools
+        tool_arguments_key='inputs',                                # ID for fetch tool arguments
+        trust_remote_code=False,
+        max_tokens=128000
     )
 
     # Load tools
@@ -58,13 +62,13 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
         ],
         add_base_tools=True,
         max_steps=30,
-        verbosity_level=2,
+        verbosity_level=5,
         grammar=None,
         planning_interval=None,
         name=None,
         description=None,
         prompt_templates=prompt_template,
-        additional_authorized_imports = ['requests'],
+        additional_authorized_imports = ['requests', 'bs4', 'wiki'],
         final_answer_checks=[validate_answer],
     )
     agent_code = f"https://huggingface.co/spaces/{space_id}/tree/main"
@@ -97,7 +101,7 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
         except Exception as e:
             results_log.append({"Task ID": task_id, "Question": question_text, "Submitted Answer": f"AGENT ERROR: {e}"})
 
-        time.sleep(10) # Tempo to avoid throttling
+        time.sleep(120) # Tempo to avoid throttling
 
     if not answers_payload:
         return "Agent did not produce any answers to submit.", pd.DataFrame(results_log)
