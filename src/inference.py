@@ -1,6 +1,15 @@
 import os
+import json
+import pandas as pd
 from dotenv import load_dotenv
 from mistralai import Mistral
+
+from src.utils.tooling import generate_tools_json
+from src.tools import (
+    wikipedia_search,
+    visit_webpage,
+    load_file,
+)
 
 load_dotenv()
 
@@ -20,7 +29,25 @@ class Agent:
         self.agent_id = os.getenv("AGENT_ID")
         self.client = Mistral(api_key=self.api_key)
 
+    def get_tools(self):
+        """
+        Generates the tools.json file with the tools to be used by the agent.
+        """
+        functions = [
+            wikipedia_search,
+            visit_webpage,
+            load_file,
+        ]
+        tools_json = generate_tools_json(functions)
+        with open('tools.json', 'w') as file:
+            json.dump(tools_json, file, indent=4)
+
+
     def run(self, input):
+        """
+        Run the agent with the given input.
+        """
+        self.get_tools()
         messages = [
             {"role": "system", "content": PROMPT_SYSTEM},
             {"role": "user", "content": input},

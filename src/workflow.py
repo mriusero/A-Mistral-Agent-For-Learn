@@ -14,8 +14,8 @@ from src.inference import Agent
 def run_and_submit_all(profile: gr.OAuthProfile | None):
 
     agent = Agent()
-
     space_id = os.getenv("SPACE_ID")
+
     if profile:
         username = f"{profile.username}"
         print(f"User logged in: {username}")
@@ -27,15 +27,19 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
     print(agent_code)
 
     questions_data = fetch_questions()
+
     if not questions_data:
         return "Failed to fetch questions.", None
 
     results_log = []
     answers_payload = []
+
     for item in questions_data:
+
         task_id = item.get("task_id")
         question_text = item.get("question")
         file_name = item.get("file_name")
+
         if not task_id or question_text is None:
             continue
 
