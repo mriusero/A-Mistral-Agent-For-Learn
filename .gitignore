@@ -13,8 +13,8 @@
 # Model
 llm/
 Attachments/
+logs/
 metadata.jsonl
 
 # Utils
 agents_final_questions.json
-

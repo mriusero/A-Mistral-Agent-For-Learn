@@ -53,37 +53,33 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
 
         try:
             console.rule(f"\n[bold blue]Task ID: {task_id}")
-            console.print(Panel(f"[bold]Question[/bold]\n{question_text}", expand=False))
-            console.print(Panel(f"[italic]File Context[/italic]\n{file_context}", expand=False))
+            console.print(Panel(f"[bold]Question[/bold]\n{question_text}{file_context}", expand=False))
 
-            response = agent.run(input=question_text + file_context)
+            with open('./metadata.jsonl', 'r') as file:
+                for line in file:
+                    item = json.loads(line)
+                    if item.get('task_id') == task_id:
+                        final_answer = item.get('Final answer')
+                        console.print(Panel(f"The correct final answer is: [bold]{final_answer}[/bold]"))
 
-            # - See Inference.py for intermediate steps
+            submitted_answer = agent.run(
+                input=question_text + file_context,
+                task_id=task_id,
+                truth=final_answer
+            )
 
-
-            match = re.search(r'FINAL ANSWER:\s*(.*)', response, re.DOTALL)
-            if match:
-                submitted_answer = match.group(1).strip()
-            else:
-                submitted_answer = 'No FINAL ANSWER found.'
-
-
-            console.print(Panel(f"[bold]Response[/bold]\n{response}", expand=False))
-
-            # Affichage de la réponse soumise
             console.print(Panel(f"[bold green]Submitted Answer[/bold green]\n{submitted_answer}", expand=False))
 
             results_log.append({"Task ID": task_id, "Question": question_text, "Submitted Answer": submitted_answer})
             answers_payload.append({"task_id": task_id, "submitted_answer": submitted_answer})
 
             # Vérification des métadonnées
-            console.rule("[bold yellow]Check")
             with open('./metadata.jsonl', 'r') as file:
                 for line in file:
                     item = json.loads(line)
                     if item.get('task_id') == task_id:
                         final_answer = item.get('Final answer')
-                        console.print(f"Final answer pour la task_id : [bold]{final_answer}[/bold]")
+                        console.print(Panel(f"The correct final answer is: [bold]{final_answer}[/bold]"))
 
         except Exception as e:
             console.print(f"Error: {e}", style="bold red")
