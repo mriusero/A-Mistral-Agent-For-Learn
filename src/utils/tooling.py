@@ -44,6 +44,8 @@ def tool(func):
                 param_type = 'string'
             elif param_type == 'int':
                 param_type = 'integer'
+            elif param_type == 'list':
+                param_type = 'array'
 
         param_description = f"The {param_name}."
 
