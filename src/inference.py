@@ -10,6 +10,13 @@ from src.tools import (
     web_search,
     visit_webpage,
     load_file,
+    reverse_text,
+    analyze_chess,
+    analyze_document,
+    classify_foods,
+    transcribe_audio,
+    execute_code,
+    analyze_excel,
 )
 
 load_dotenv()
@@ -24,13 +31,32 @@ class Agent:
             "web_search": web_search,
             "visit_webpage": visit_webpage,
             "load_file": load_file,
+            "reverse_text": reverse_text,
+            "analyze_chess": analyze_chess,
+            "analyze_document": analyze_document,
+            "classify_foods": classify_foods,
+            "transcribe_audio": transcribe_audio,
+            "execute_code": execute_code,
+            "analyze_excel": analyze_excel,
         }
         self.conversation_log = []
 
     def get_tools(self):
         """Generate the tools.json file with the tools to be used by the agent."""
         return generate_tools_json(
-            [web_search, visit_webpage, load_file]).get('tools')
+            [
+                web_search,
+                visit_webpage,
+                load_file,
+                reverse_text,
+                analyze_chess,
+                analyze_document,
+                classify_foods,
+                transcribe_audio,
+                execute_code,
+                analyze_excel,
+            ]
+        ).get('tools')
 
     def make_initial_request(self, input):
         """Make the initial request to the agent with the given input."""
@@ -115,7 +141,7 @@ class Agent:
                 file, ensure_ascii=False, indent=4
             )
 
-    def run(self, input, task_id, truth, max_steps=20):
+    def run(self, input, task_id, truth, max_steps=100):
         """Run the agent with the given input and process the response."""
         print("\n... Asking the agent ...\n")
         response, messages = self.make_initial_request(input)
@@ -125,7 +151,7 @@ class Agent:
             steps += 1
             thought_result = self.thought(response)
 
-            final_answer_match = re.search(r'Final Answer\n(.*)', thought_result, re.DOTALL)
+            final_answer_match = re.search(r'FINAL ANSWER:(.*)', thought_result, re.DOTALL)
             if final_answer_match:
                 self.save_conversation(task_id, truth, final_answer_match.group(1).strip())
                 return final_answer_match.group(1).strip()

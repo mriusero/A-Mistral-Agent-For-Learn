@@ -63,5 +63,155 @@
                 ]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "reverse_text",
+            "description": "Reverses an input string to make it readable.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "input_text": {
+                        "type": "string",
+                        "description": "The reversed text string to process."
+                    }
+                },
+                "required": [
+                    "input_text"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "analyze_chess",
+            "description": "Analyzes a chess position from an image and determines the best next move.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "image_path": {
+                        "type": "string",
+                        "description": "The path to the image file containing the chess position."
+                    }
+                },
+                "required": [
+                    "image_path"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "analyze_document",
+            "description": "Extracts specific information from a PDF or text document based on given keywords.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "file_path": {
+                        "type": "string",
+                        "description": "The path to the PDF or text document to analyze."
+                    },
+                    "keywords": {
+                        "type": "array",
+                        "description": "A list of keywords to search for in the document."
+                    }
+                },
+                "required": [
+                    "file_path",
+                    "keywords"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "classify_foods",
+            "description": "Classifies a list of foods into specific botanical categories.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "food_list": {
+                        "type": "array",
+                        "description": "A list of foods to classify."
+                    }
+                },
+                "required": [
+                    "food_list"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "transcribe_audio",
+            "description": "Transcribes the content of an audio file into text.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "file_path": {
+                        "type": "string",
+                        "description": "The path to the audio file to transcribe."
+                    },
+                    "language": {
+                        "type": "string",
+                        "description": "The language of the audio content. Defaults to 'en' (English)."
+                    }
+                },
+                "required": [
+                    "file_path"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "execute_code",
+            "description": "Executes Python code from a file and returns the final result.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "file_path": {
+                        "type": "string",
+                        "description": "The path to the file containing the Python code to execute."
+                    }
+                },
+                "required": [
+                    "file_path"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "analyze_excel",
+            "description": "Analyzes data from an Excel file to extract specific information.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "file_path": {
+                        "type": "string",
+                        "description": "The path to the Excel file to analyze."
+                    },
+                    "sheet_name": {
+                        "type": "string",
+                        "description": "The name of the sheet to read. If None, the first sheet is used."
+                    },
+                    "specific_columns": {
+                        "type": "array",
+                        "description": "A list of column names to extract. If None, all columns are extracted."
+                    }
+                },
+                "required": [
+                    "file_path"
+                ]
+            }
+        }
     }
 ]

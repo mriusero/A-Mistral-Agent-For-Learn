@@ -6,3 +6,7 @@ wikipedia
 openpyxl
 pydub
 mistralai
+opencv-python
+chess
+SpeechRecognition
+pypdf2

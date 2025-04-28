@@ -16,7 +16,6 @@ from src.inference import Agent
 
 def run_and_submit_all(profile: gr.OAuthProfile | None):
     console = Console()
-    agent = Agent()
     space_id = os.getenv("SPACE_ID")
 
     if profile:
@@ -38,6 +37,7 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
     answers_payload = []
 
     for item in questions_data:
+
         task_id = item.get("task_id")
         question_text = item.get("question")
         file_name = item.get("file_name")
@@ -60,8 +60,8 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
                     item = json.loads(line)
                     if item.get('task_id') == task_id:
                         final_answer = item.get('Final answer')
-                        console.print(Panel(f"The correct final answer is: [bold]{final_answer}[/bold]"))
 
+            agent = Agent()
             submitted_answer = agent.run(
                 input=question_text + file_context,
                 task_id=task_id,
@@ -69,17 +69,10 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
             )
 
             console.print(Panel(f"[bold green]Submitted Answer[/bold green]\n{submitted_answer}", expand=False))
+            console.print(Panel(f"The correct final answer is: [bold]{final_answer}[/bold]"))
 
             results_log.append({"Task ID": task_id, "Question": question_text, "Submitted Answer": submitted_answer})
             answers_payload.append({"task_id": task_id, "submitted_answer": submitted_answer})
-
-            # Vérification des métadonnées
-            with open('./metadata.jsonl', 'r') as file:
-                for line in file:
-                    item = json.loads(line)
-                    if item.get('task_id') == task_id:
-                        final_answer = item.get('Final answer')
-                        console.print(Panel(f"The correct final answer is: [bold]{final_answer}[/bold]"))
 
         except Exception as e:
             console.print(f"Error: {e}", style="bold red")
