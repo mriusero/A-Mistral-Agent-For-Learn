@@ -1,13 +1,13 @@
 from src.utils.tooling import tool
 
 @tool
-def classify_foods(food_list: list) -> dict:
+def classify_foods(food_list: list) -> str:
     """
     Classifies a list of foods into specific botanical categories.
     Args:
         food_list (list): A list of foods to classify.
     Returns:
-        dict: A dictionary with categories as keys and lists of foods as values.
+        str: A string with categories as keys and lists of foods as values.
     """
     categories = {
         "fruits": [
@@ -19,7 +19,8 @@ def classify_foods(food_list: list) -> dict:
         "vegetables": [
             "carrot", "broccoli", "spinach", "lettuce", "celery", "fresh basil", "sweet potato",
             "potato", "onion", "garlic", "cabbage", "kale", "cauliflower", "asparagus", "radish",
-            "turnip", "beet", "artichoke", "brussels sprouts", "green beans", "peas", "mushroom"
+            "turnip", "beet", "artichoke", "brussels sprouts", "peas", "mushroom",
+            "sweet potatoes",
         ],
         "grains": [
             "rice", "wheat", "oats", "barley", "quinoa", "corn", "rye", "millet", "sorghum",
@@ -31,7 +32,7 @@ def classify_foods(food_list: list) -> dict:
         ],
         "legumes": [
             "lentil", "chickpea", "bean", "pea", "soybean", "black bean", "kidney bean", "pinto bean",
-            "navy bean", "lima bean", "green bean"
+            "navy bean", "lima bean", "green beans",
         ],
         "other": [
             "milk", "eggs", "coffee", "Oreos", "allspice", "sugar", "salt", "honey", "maple syrup",
@@ -51,6 +52,11 @@ def classify_foods(food_list: list) -> dict:
         if not classified:
             classified_foods.setdefault("unknown", []).append(food)
 
-    classified_foods["vegetables"].sort()
+    #classified_foods["vegetables"].sort()
 
-    return classified_foods
+    result = []
+    for category, foods in classified_foods.items():
+        if foods:
+            result.append(f"{category.capitalize()}: {', '.join(foods)}")
+
+    return "Food classification:\n" + "\n".join(result)
