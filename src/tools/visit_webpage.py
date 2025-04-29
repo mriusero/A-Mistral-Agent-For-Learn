@@ -6,6 +6,7 @@ from src.utils.tooling import tool
 def visit_webpage(url: str) -> str:
     """
     Visits a webpage at the given URL and reads its content as a markdown string.
+    This tool is useful for extracting information from web pages in a structured format after a search.
     Args:
         url (str): The URL of the webpage to visit.
     """

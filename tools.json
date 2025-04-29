@@ -106,7 +106,7 @@
         "type": "function",
         "function": {
             "name": "analyze_document",
-            "description": "Extracts specific information from a PDF or text document based on given keywords.",
+            "description": "Extracts specific information from a local PDF or local text document based on given keywords.",
             "parameters": {
                 "type": "object",
                 "properties": {

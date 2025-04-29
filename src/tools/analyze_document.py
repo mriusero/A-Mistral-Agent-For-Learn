@@ -5,7 +5,8 @@ import re
 @tool
 def analyze_document(file_path: str, keywords: list) -> str:
     """
-    Extracts specific information from a PDF or text document based on given keywords.
+    Extracts specific information from a local PDF or local text document based on given keywords.
+    (WARNING: This does not support URLs or web pages.)
     Args:
         file_path (str): The path to the PDF or text document to analyze.
         keywords (list): A list of keywords to search for in the document.

@@ -27,6 +27,7 @@ class Agent:
         self.agent_id = os.getenv("AGENT_ID")
         self.client = Mistral(api_key=self.api_key)
         self.model = "codestral-latest"
+        self.prompt = None
         self.names_to_functions = {
             "web_search": web_search,
             "visit_webpage": visit_webpage,
@@ -39,9 +40,21 @@ class Agent:
             "execute_code": execute_code,
             "analyze_excel": analyze_excel,
         }
-        self.conversation_log = []
+        self.log = []
+        self.tools = self.get_tools()
 
-    def get_tools(self):
+    @staticmethod
+    def save_log(messages, task_id, truth, final_answer=None):
+        """Save the conversation log to a JSON file with a timestamped filename."""
+        filename = f"./logs/{task_id}.json"
+        with open(filename, 'w', encoding='utf-8') as file:
+            json.dump(
+                messages + [{"Correct Answer": truth, "Final Answer": final_answer}],
+                file, ensure_ascii=False, indent=4
+            )
+
+    @staticmethod
+    def get_tools():
         """Generate the tools.json file with the tools to be used by the agent."""
         return generate_tools_json(
             [
@@ -61,12 +74,15 @@ class Agent:
     def make_initial_request(self, input):
         """Make the initial request to the agent with the given input."""
         with open("./prompt.md", 'r', encoding='utf-8') as file:
-            prompt = file.read()
-
-        tools = self.get_tools()
+            self.prompt = file.read()
         messages = [
-            {"role": "system", "content": prompt},
+            {"role": "system", "content": self.prompt},
             {"role": "user", "content": input},
+            {
+                "role": "assistant",
+                "content": "Let's tackle this problem, first I will decompose it into smaller parts and then I will solve each part step by step.",
+                "prefix": True,
+            },
         ]
         payload = {
             "agent_id": self.agent_id,
@@ -76,7 +92,7 @@ class Agent:
             "stop": None,
             "random_seed": None,
             "response_format": None,
-            "tools": tools,
+            "tools": self.tools,
             "tool_choice": 'auto',
             "presence_penalty": 0,
             "frequency_penalty": 0,
@@ -84,99 +100,97 @@ class Agent:
             "prediction": None,
             "parallel_tool_calls": None
         }
-        self.conversation_log.extend(messages)
         return self.client.agents.complete(**payload), messages
 
-    def thought(self, response):
-        """Generate a thought based on the current response."""
-        if hasattr(response, 'choices') and response.choices:
-            choice = response.choices[0]
-            if hasattr(choice, 'message') and hasattr(choice.message, 'content'):
-                thought_action_observation = choice.message.content
-                print(thought_action_observation)
-                self.conversation_log.append({"role": "assistant", "content": thought_action_observation})
-                return thought_action_observation
-        return None
-
-    def act(self, tool_calls):
-        """Execute the actions based on the tool calls."""
-        results = []
-        for tool_call in tool_calls:
-            function_name = tool_call.function.name
-            function_params = json.loads(tool_call.function.arguments)
-            print(f"\nAction: Calling function {function_name} with params {function_params}")
-
-            try:
-                function_result = self.names_to_functions[function_name](**function_params)
-                results.append((tool_call.id, function_name, function_result))
-                print(f"\nTools `{function_name}` returned :\n{function_result}")
-                self.conversation_log.append({"role": "tool", "name": function_name, "params": function_params, "result": function_result})
-            except Exception as e:
-                print(f"Error calling function {function_name}: {e}")
-                results.append((tool_call.id, function_name, None))
-                self.conversation_log.append({"role": "tool", "name": function_name, "params": function_params, "result": None, "error": str(e)})
-
-        return results
-
-    def observe(self, messages, results):
-        """Generate an observation based on the results of the actions."""
-        for tool_call_id, function_name, function_result in results:
-            messages.append(
-                {
-                    "role": "assistant",
-                    "content": f"{function_name}: {function_result}",
-                    "prefix": True,
-                    "tool_call_id": tool_call_id
-                }
-            )
-            self.conversation_log.append({"role": "assistant", "content": f"{function_name}: {function_result}", "tool_call_id": tool_call_id})
-        return messages
-
-    def save_conversation(self, task_id, truth, final_answer=None):
-        """Save the conversation log to a JSON file with a timestamped filename."""
-        filename = f"./logs/{task_id}.json"
-        with open(filename, 'w', encoding='utf-8') as file:
-            json.dump(
-                self.conversation_log + [{"Correct Answer": truth, "Final Answer": final_answer}],
-                file, ensure_ascii=False, indent=4
-            )
-
-    def run(self, input, task_id, truth, max_steps=100):
+    def run(self, input, task_id, truth):
         """Run the agent with the given input and process the response."""
-        print("\n... Asking the agent ...\n")
+        print("\n===== Asking the agent =====\n")
         response, messages = self.make_initial_request(input)
-        steps = 0
+        first_iteration = True
 
-        while steps < max_steps:
-            steps += 1
-            thought_result = self.thought(response)
-
-            final_answer_match = re.search(r'FINAL ANSWER:(.*)', thought_result, re.DOTALL)
-            if final_answer_match:
-                self.save_conversation(task_id, truth, final_answer_match.group(1).strip())
-                return final_answer_match.group(1).strip()
-
+        while True:
+            time.sleep(1)
             if hasattr(response, 'choices') and response.choices:
                 choice = response.choices[0]
 
-                if choice.message.tool_calls:
-                    action_results = self.act(choice.message.tool_calls)
-
-                    time.sleep(1)
-
-                    messages = self.observe(messages, action_results)
-
-                    response = self.client.chat.complete(
-                        model=self.model,
-                        messages=messages
+                if first_iteration:
+                    messages = [message for message in messages if not message.get("prefix")]
+                    messages.append(
+                        {
+                            "role": "assistant",
+                            "content": choice.message.content,
+                            "prefix": True,
+                        },
                     )
-                    time.sleep(1)
+                    first_iteration = False
                 else:
-                    print("No tool calls in choice message.")
-                    break
-            else:
-                print("No valid response from the agent.")
-                return "No valid response from the agent."
+                    if choice.message.tool_calls:
+                        results = []
 
-        self.save_conversation(task_id, truth)
-        return "Max steps reached. No final answer found."
+                        for tool_call in choice.message.tool_calls:
+                            function_name = tool_call.function.name
+                            function_params = json.loads(tool_call.function.arguments)
+
+                            try:
+                                function_result = self.names_to_functions[function_name](**function_params)
+                                results.append((tool_call.id, function_name, function_result))
+
+                            except Exception as e:
+                                results.append((tool_call.id, function_name, None))
+
+                        for tool_call_id, function_name, function_result in results:
+                            messages.append({
+                                "role": "assistant",
+                                "tool_calls": [
+                                    {
+                                        "id": tool_call_id,
+                                        "type": "function",
+                                        "function": {
+                                            "name": function_name,
+                                            "arguments": json.dumps(function_params),
+                                        }
+                                    }
+                                ]
+                            })
+                            messages.append(
+                                {
+                                    "role": "tool",
+                                    "content": function_result if function_result is not None else f"Error occurred: {function_name} failed to execute",
+                                    "tool_call_id": tool_call_id,
+                                },
+                            )
+                            for message in messages:
+                                if "prefix" in message:
+                                    del message["prefix"]
+                            messages.append(
+                                {
+                                    "role": "assistant",
+                                    "content": f"Based on the results, ",
+                                    "prefix": True,
+                                }
+                            )
+                    else:
+                        for message in messages:
+                            if "prefix" in message:
+                                del message["prefix"]
+                        messages.append(
+                            {
+                                "role": "assistant",
+                                "content": choice.message.content,
+                            }
+                        )
+                        if 'FINAL ANSWER:' in choice.message.content:
+                            print("\n===== END OF REQUEST =====\n", json.dumps(messages, indent=2))
+                            ans = choice.message.content.split('FINAL ANSWER:')[1].strip()
+                            self.save_log(messages, task_id, truth, final_answer=ans)
+                            return ans
+
+                print("\n===== MESSAGES BEFORE API CALL =====\n", json.dumps(messages, indent=2))
+                time.sleep(1)
+                self.save_log(messages, task_id, truth, final_answer=None)
+                response = self.client.agents.complete(
+                    agent_id=self.agent_id,
+                    messages=messages,
+                    tools=self.tools,
+                    tool_choice='auto',
+                )
