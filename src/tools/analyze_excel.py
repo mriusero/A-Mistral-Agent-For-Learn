@@ -21,9 +21,7 @@ def analyze_excel(file_path: str, sheet_name: str = None, specific_columns: list
         if specific_columns:
             df = df[specific_columns]
 
-        analysis_result = df.describe(include='all').to_string()
-
-        return f"## Excel Analysis Results\n\n{analysis_result}"
+        return f"Excel file contains:\n\n{df.to_string(index=False)}"
 
     except FileNotFoundError:
         return "File not found. Please check the file path."
