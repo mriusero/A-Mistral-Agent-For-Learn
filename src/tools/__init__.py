@@ -5,6 +5,6 @@ from .reverse_text import reverse_text
 from .analyze_chess import analyze_chess
 from .analyze_document import analyze_document
 from .classify_food import classify_foods
-from .transcript_audio import transcribe_audio
+from .transcribe_audio import transcribe_audio
 from .execute_code import execute_code
 from .analyze_excel import analyze_excel
