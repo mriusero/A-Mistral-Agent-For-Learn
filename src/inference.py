@@ -17,6 +17,7 @@ from src.tools import (
     transcribe_audio,
     execute_code,
     analyze_excel,
+    analyze_youtube_video,
 )
 
 load_dotenv()
@@ -39,6 +40,7 @@ class Agent:
             "transcribe_audio": transcribe_audio,
             "execute_code": execute_code,
             "analyze_excel": analyze_excel,
+            "analyze_youtube_video": analyze_youtube_video,
         }
         self.log = []
         self.tools = self.get_tools()
@@ -68,6 +70,7 @@ class Agent:
                 transcribe_audio,
                 execute_code,
                 analyze_excel,
+                analyze_youtube_video,
             ]
         ).get('tools')
 
