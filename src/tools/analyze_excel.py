@@ -21,7 +21,10 @@ def analyze_excel(file_path: str, sheet_name: str = None, specific_columns: list
         if specific_columns:
             df = df[specific_columns]
 
-        return f"Excel file contains:\n\n{df.to_string(index=False)}"
+        print(df.dtypes)
+
+        markdown_table = df.to_markdown(index=False)
+        return f"Excel file contains:\n\n{markdown_table}"
 
     except FileNotFoundError:
         return "File not found. Please check the file path."

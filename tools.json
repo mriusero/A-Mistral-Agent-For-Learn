@@ -159,7 +159,7 @@
                     },
                     "language": {
                         "type": "string",
-                        "description": "The language of the audio content. Defaults to 'en' (English)."
+                        "description": "The language of the audio content. If None, the language will be detected automatically. Defaults to None."
                     }
                 },
                 "required": [
@@ -172,18 +172,20 @@
         "type": "function",
         "function": {
             "name": "execute_code",
-            "description": "Executes Python code from a file and returns the final result.",
+            "description": "Executes Python code from a file or a string and returns the final result.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "file_path": {
                         "type": "string",
                         "description": "The path to the file containing the Python code to execute."
+                    },
+                    "code_string": {
+                        "type": "string",
+                        "description": "The Python code as a string to execute."
                     }
                 },
-                "required": [
-                    "file_path"
-                ]
+                "required": []
             }
         }
     },
@@ -210,6 +212,49 @@
                 },
                 "required": [
                     "file_path"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "analyze_youtube_video",
+            "description": "Analyse the text description and the visual content of a Youtube video.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "video_url": {
+                        "type": "string",
+                        "description": "The URL of the YouTube video to analyze."
+                    }
+                },
+                "required": [
+                    "video_url"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "calculate",
+            "description": "Performs a mathematical operation on a list of numbers.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "operation": {
+                        "type": "string",
+                        "description": "The operation to perform. Can be \"sum\", \"multiply\", \"subtract\", or \"divide\"."
+                    },
+                    "numbers": {
+                        "type": "array",
+                        "description": "A list of numerical values to perform the operation on."
+                    }
+                },
+                "required": [
+                    "operation",
+                    "numbers"
                 ]
             }
         }

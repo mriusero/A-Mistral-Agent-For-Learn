@@ -6,6 +6,7 @@
 
 #Secrets
 *.env
+my-traffic-analysis-441217-32bda1474a0f.json
 
 # Python
 *__pycache__/
@@ -15,6 +16,7 @@ llm/
 Attachments/
 logs/
 1st_run/
+2nd_run/
 metadata.jsonl
 
 # Utils

@@ -10,3 +10,4 @@ opencv-python
 chess
 SpeechRecognition
 pypdf2
+isodate

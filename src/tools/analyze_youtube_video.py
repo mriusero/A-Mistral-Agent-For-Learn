@@ -3,6 +3,8 @@ import requests
 from dotenv import load_dotenv
 from isodate import parse_duration
 
+from src.utils.tooling import tool
+
 def extract_video_id(video_url: str) -> str:
     """
     Extract the video ID from a YouTube URL.
@@ -37,6 +39,7 @@ def get_visual() -> dict:
         'visual_analysis': 'Empty, you have to find another source to get more data about this video.'
     }
 
+@tool
 def analyze_youtube_video(video_url: str) -> dict:
     """
     Analyse the text description and the visual content of a Youtube video.
