@@ -268,11 +268,11 @@
                     },
                     "n_results": {
                         "type": "integer",
-                        "description": "The number of results to return. Default is 5."
+                        "description": "The number of results to return. Default is 1."
                     },
-                    "similarity_threshold": {
+                    "distance_threshold": {
                         "type": "number",
-                        "description": "The minimum similarity score for results. Default is 0.7."
+                        "description": "The minimum distance score for results. Default is 0.5."
                     }
                 },
                 "required": [

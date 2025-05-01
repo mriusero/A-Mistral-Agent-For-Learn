@@ -1,6 +1,8 @@
 from src.utils.tooling import tool
 from src.utils.vector_store import vectorize, load_in_vector_db
 
+
+
 @tool
 def visit_webpage(url: str) -> str:
     """
@@ -10,6 +12,8 @@ def visit_webpage(url: str) -> str:
         url (str): The URL of the webpage to visit.
     """
     try:
+        from src.web2llm.app.scraper import scrape_url
+        from src.web2llm.app.converter import html_to_markdown
         import re
         import requests
         from markdownify import markdownify
@@ -18,25 +22,24 @@ def visit_webpage(url: str) -> str:
 
     except ImportError as e:
         raise ImportError(
-            "You must install packages `markdownify` and `requests` to run this tool: for instance run `pip install markdownify requests`."
+            f"You must install packages `markdownify` and `requests` to run this tool: for instance run `pip install markdownify requests` : {e}"
         ) from e
 
     try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()                         # Raise an exception for bad status codes
-
-        markdown_content = markdownify(response.text).strip()                            # Convert the HTML content to Markdown
-        markdown_content = re.sub(r"\n{3,}", "\n\n", markdown_content)      # Remove multiple line breaks
-
-        # Adding metadata
-        metadatas = {
-            "url": url,
-        }
+        # Web2LLM app
+        result = scrape_url(url, clean=True)
+        markdown_content = html_to_markdown(result["clean_html"])
 
         text_embeddings, chunks = vectorize(markdown_content)   # Vectorize the content
-        load_in_vector_db(text_embeddings, chunks, metadatas=metadatas)              # Load the text embeddings into a FAISS index
-
-        return truncate_content(markdown_content, 10000)
+        load_in_vector_db(
+            text_embeddings,
+            chunks,
+            metadatas={
+                "title": result["title"],
+                "url": url,
+            }
+        )
+        return "The webpage has been successfully visited: content has been vectorized and stored in the knowledge base."
 
     except requests.exceptions.Timeout:
         return "The request timed out. Please try again later or check the URL."

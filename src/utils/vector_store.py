@@ -11,6 +11,7 @@ MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 COLLECTION_NAME = "webpages_collection"
 PERSIST_DIRECTORY = "./chroma_db"
 
+
 def get_text_embeddings(input_texts):
     """
     Get the text embeddings for the given inputs using Mistral API.
@@ -22,6 +23,7 @@ def get_text_embeddings(input_texts):
                 model="mistral-embed",
                 inputs=input_texts
             )
+            time.sleep(1)
             return [data.embedding for data in embeddings_batch_response.data]
         except Exception as e:
             if "rate limit exceeded" in str(e).lower():
@@ -30,13 +32,35 @@ def get_text_embeddings(input_texts):
             else:
                 raise
 
+
 def vectorize(markdown_content, chunk_size=2048):
     """
-    Vectorizes the given markdown content into chunks of specified size.
+    Vectorizes the given markdown content into chunks of specified size without cutting sentences.
     """
-    chunks = [markdown_content[i:i + chunk_size] for i in range(0, len(markdown_content), chunk_size)]
+    def find_sentence_end(text, start):
+        """Find the nearest sentence end from the start index."""
+        punctuations = {'.', '!', '?'}
+        end = start
+        while end < len(text) and text[end] not in punctuations:
+            end += 1
+        while end < len(text) and text[end] in punctuations:
+            end += 1
+        while end > start and text[end - 1] not in punctuations:
+            end -= 1
+        return end
+
+    chunks = []
+    start = 0
+
+    while start < len(markdown_content):
+        end = min(start + chunk_size, len(markdown_content))
+        end = find_sentence_end(markdown_content, end)
+        chunks.append(markdown_content[start:end].strip())
+        start = end
+
     text_embeddings = get_text_embeddings(chunks)
     return np.array(text_embeddings), chunks
+
 
 def load_in_vector_db(text_embeddings, chunks, metadatas=None, collection_name=COLLECTION_NAME):
     """
@@ -44,19 +68,28 @@ def load_in_vector_db(text_embeddings, chunks, metadatas=None, collection_name=C
     """
     client = chromadb.PersistentClient(path=PERSIST_DIRECTORY)
 
-    # Check if the collection exists, if not, create it
     if collection_name not in [col.name for col in client.list_collections()]:
         collection = client.create_collection(collection_name)
     else:
         collection = client.get_collection(collection_name)
 
+    existing_items = collection.get()
+    existing_ids = set()
+
+    for item in existing_items:
+        if isinstance(item, dict) and 'ids' in item:
+            existing_ids.update(item['ids'])
+
     for embedding, chunk in zip(text_embeddings, chunks):
-        collection.add(
-            embeddings=[embedding],
-            documents=[chunk],
-            metadatas=[metadatas],
-            ids=[str(hash(chunk))]
-        )
+        chunk_id = str(hash(chunk))
+        if chunk_id not in existing_ids:
+            collection.add(
+                embeddings=[embedding],
+                documents=[chunk],
+                metadatas=[metadatas],
+                ids=[chunk_id]
+            )
+            existing_ids.add(chunk_id)
 
 
 def see_database(collection_name=COLLECTION_NAME):
@@ -89,6 +122,7 @@ def see_database(collection_name=COLLECTION_NAME):
 
         print("---")
 
+
 def retrieve_from_database(query, collection_name=COLLECTION_NAME, n_results=5, distance_threshold=None):
     """
     Retrieve the most similar documents from the vector store based on the query.
@@ -117,8 +151,8 @@ def retrieve_from_database(query, collection_name=COLLECTION_NAME, n_results=5, 
         results = filtered_results
 
         if len(results['documents']) == 0:
-            return "No relevant data found in knowledge database, have you visited webpages?"
+            return "No relevant data found in the knowledge database. Have you checked any webpages? If so, please try to find more relevant data."
         else:
-            return json.dumps(results, indent=4)
+            return results
     else:
-        return json.dumps(raw_results, indent=4)
+        return raw_results
