@@ -5,35 +5,48 @@ import numpy as np
 import time
 import chromadb
 import json
+import hashlib
 
 load_dotenv()
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 COLLECTION_NAME = "webpages_collection"
 PERSIST_DIRECTORY = "./chroma_db"
 
-
-def get_text_embeddings(input_texts):
+def vectorize(input_texts, batch_size=5):
     """
     Get the text embeddings for the given inputs using Mistral API.
     """
-    client = Mistral(api_key=MISTRAL_API_KEY)
-    while True:
-        try:
-            embeddings_batch_response = client.embeddings.create(
-                model="mistral-embed",
-                inputs=input_texts
-            )
-            time.sleep(1)
-            return [data.embedding for data in embeddings_batch_response.data]
-        except Exception as e:
-            if "rate limit exceeded" in str(e).lower():
-                print("Rate limit exceeded. Retrying after 1 second...")
+    try:
+        client = Mistral(api_key=MISTRAL_API_KEY)
+    except Exception as e:
+        print(f"Error initializing Mistral client: {e}")
+        return []
+
+    embeddings = []
+
+    for i in range(0, len(input_texts), batch_size):
+        batch = input_texts[i:i + batch_size]
+        while True:
+            try:
+                embeddings_batch_response = client.embeddings.create(
+                    model="mistral-embed",
+                    inputs=batch
+                )
                 time.sleep(1)
-            else:
-                raise
+                embeddings.extend([data.embedding for data in embeddings_batch_response.data])
+                break
+            except Exception as e:
+                if "rate limit exceeded" in str(e).lower():
+                    print("Rate limit exceeded. Retrying after 10 seconds...")
+                    time.sleep(10)
+                else:
+                    print(f"Error in embedding batch: {e}")
+                    raise
+
+    return embeddings
 
 
-def vectorize(markdown_content, chunk_size=2048):
+def chunk_content(markdown_content, chunk_size=2048):
     """
     Vectorizes the given markdown content into chunks of specified size without cutting sentences.
     """
@@ -58,83 +71,98 @@ def vectorize(markdown_content, chunk_size=2048):
         chunks.append(markdown_content[start:end].strip())
         start = end
 
-    text_embeddings = get_text_embeddings(chunks)
-    return np.array(text_embeddings), chunks
+    return chunks
 
 
-def load_in_vector_db(text_embeddings, chunks, metadatas=None, collection_name=COLLECTION_NAME):
+def generate_chunk_id(chunk):
+    """Generate a unique ID for a chunk using SHA-256 hash."""
+    return hashlib.sha256(chunk.encode('utf-8')).hexdigest()
+
+
+def load_in_vector_db(markdown_content, metadatas=None, collection_name=COLLECTION_NAME):
     """
     Load the text embeddings into a ChromaDB collection for efficient similarity search.
     """
-    client = chromadb.PersistentClient(path=PERSIST_DIRECTORY)
-
-    if collection_name not in [col.name for col in client.list_collections()]:
-        collection = client.create_collection(collection_name)
-    else:
-        collection = client.get_collection(collection_name)
-
-    existing_items = collection.get()
-    existing_ids = set()
-
-    for item in existing_items:
-        if isinstance(item, dict) and 'ids' in item:
-            existing_ids.update(item['ids'])
-
-    for embedding, chunk in zip(text_embeddings, chunks):
-        chunk_id = str(hash(chunk))
-        if chunk_id not in existing_ids:
-            collection.add(
-                embeddings=[embedding],
-                documents=[chunk],
-                metadatas=[metadatas],
-                ids=[chunk_id]
-            )
-            existing_ids.add(chunk_id)
-
-
-def see_database(collection_name=COLLECTION_NAME):
-    """
-    Load the ChromaDB collection and text chunks.
-    """
-    client = chromadb.PersistentClient(path=PERSIST_DIRECTORY)
-
-    if collection_name not in [col.name for col in client.list_collections()]:
-        print("Collection not found. Please ensure it is created.")
+    try:
+        client = chromadb.PersistentClient(path=PERSIST_DIRECTORY)
+    except Exception as e:
+        print(f"Error initializing ChromaDB client: {e}")
         return
 
-    collection = client.get_collection(collection_name)
-
-    items = collection.get()
-
-    print(f"Type of items: {type(items)}")
-    print(f"Items: {items}")
-
-    for item in items:
-        print(f"Type of item: {type(item)}")
-        print(f"Item: {item}")
-
-        if isinstance(item, dict):
-            print(f"ID: {item.get('ids')}")
-            print(f"Document: {item.get('document')}")
-            print(f"Metadata: {item.get('metadata')}")
+    try:
+        if collection_name not in [col.name for col in client.list_collections()]:
+            collection = client.create_collection(collection_name)
         else:
-            print("Item is not a dictionary")
+            collection = client.get_collection(collection_name)
+    except Exception as e:
+        print(f"Error accessing collection: {e}")
+        return
 
-        print("---")
+    try:
+        existing_items = collection.get()
+    except Exception as e:
+        print(f"Error retrieving existing items: {e}")
+        return
+
+    existing_ids = set()
+
+    if 'ids' in existing_items:
+        existing_ids.update(existing_items['ids'])
+
+    chunks = chunk_content(markdown_content)
+    text_to_vectorize = []
+
+    for chunk in chunks:
+        chunk_id = generate_chunk_id(chunk)
+        if chunk_id not in existing_ids:
+            text_to_vectorize.append(chunk)
+
+    print(f"New chunks to vectorize: {len(text_to_vectorize)}")
+
+    if text_to_vectorize:
+        embeddings = vectorize(text_to_vectorize)
+        for embedding, chunk in zip(embeddings, text_to_vectorize):
+            chunk_id = generate_chunk_id(chunk)
+            if chunk_id not in existing_ids:
+                try:
+                    collection.add(
+                        embeddings=[embedding],
+                        documents=[chunk],
+                        metadatas=[metadatas],
+                        ids=[chunk_id]
+                    )
+                    existing_ids.add(chunk_id)
+                except Exception as e:
+                    print(f"Error adding embedding to collection: {e}")
 
 
 def retrieve_from_database(query, collection_name=COLLECTION_NAME, n_results=5, distance_threshold=None):
     """
     Retrieve the most similar documents from the vector store based on the query.
     """
-    client = chromadb.PersistentClient(path=PERSIST_DIRECTORY)
-    collection = client.get_collection(collection_name)
-    query_embeddings = get_text_embeddings([query])
-    raw_results = collection.query(
-        query_embeddings=query_embeddings,
-        n_results=n_results,
-        include=["documents", "metadatas", "distances"]
-    )
+    try:
+        client = chromadb.PersistentClient(path=PERSIST_DIRECTORY)
+        collection = client.get_collection(collection_name)
+    except Exception as e:
+        print(f"Error accessing collection: {e}")
+        return
+
+    try:
+        query_embeddings = vectorize([query])
+    except Exception as e:
+        print(f"Error vectorizing query: {e}")
+        return
+
+    try:
+        raw_results = collection.query(
+            query_embeddings=query_embeddings,
+            n_results=n_results,
+            include=["documents", "metadatas", "distances"]
+        )
+    except Exception as e:
+        print(f"Error querying collection: {e}")
+        return
+
     if distance_threshold is not None:
         filtered_results = {
             "ids": [],

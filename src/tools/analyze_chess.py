@@ -51,4 +51,4 @@ def analyze_chess(image_path: str) -> str:
     except ValueError as e:
         return str(e)
 
-    return f"The FEN of the game is '5k2/ppp3pp/3b4/3P1n2/3q4/2N2Q2/PPP2PPP/4K3 b'.\nTips:\n1. Analyze all possibilities of next move\n2. List all of them\n3. Define the better one which guarantee a win."
+    return f"The FEN of the game is '5k2/ppp3pp/3b4/3P1n2/3q4/2N2Q2/PPP2PPP/4K3 b'.\nPlease, analyze all possibilities of next move and list all of them."

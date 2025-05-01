@@ -1,5 +1,5 @@
 from src.utils.tooling import tool
-from src.utils.vector_store import vectorize, load_in_vector_db
+from src.utils.vector_store import chunk_content, load_in_vector_db
 
 
 
@@ -19,21 +19,28 @@ def visit_webpage(url: str) -> str:
         from markdownify import markdownify
         from requests.exceptions import RequestException
         from smolagents.utils import truncate_content
+        from urllib.parse import urlparse
 
     except ImportError as e:
         raise ImportError(
             f"You must install packages `markdownify` and `requests` to run this tool: for instance run `pip install markdownify requests` : {e}"
         ) from e
 
+    forbidden_domains = ["universetoday.com"]
+
+    parsed_url = urlparse(url)
+    domain = parsed_url.netloc
+
+    if domain in forbidden_domains:
+        return "This domain is forbidden and cannot be accessed, please try another one."
+
     try:
         # Web2LLM app
         result = scrape_url(url, clean=True)
         markdown_content = html_to_markdown(result["clean_html"])
 
-        text_embeddings, chunks = vectorize(markdown_content)   # Vectorize the content
         load_in_vector_db(
-            text_embeddings,
-            chunks,
+            markdown_content,
             metadatas={
                 "title": result["title"],
                 "url": url,

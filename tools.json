@@ -48,18 +48,22 @@
     {
         "type": "function",
         "function": {
-            "name": "load_file",
-            "description": "Loads data from a file based on its extension.",
+            "name": "retrieve_knowledge",
+            "description": "Retrieves knowledge from a database with a provided query.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "file_path": {
+                    "query": {
                         "type": "string",
-                        "description": "The path to the file to be loaded."
+                        "description": "The query to search for in the vector store."
+                    },
+                    "n_results": {
+                        "type": "integer",
+                        "description": "The number of results to return. Default is 1."
                     }
                 },
                 "required": [
-                    "file_path"
+                    "query"
                 ]
             }
         }
@@ -98,30 +102,6 @@
                 },
                 "required": [
                     "image_path"
-                ]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "analyze_document",
-            "description": "Extracts specific information from a local PDF or local text document based on given keywords.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "file_path": {
-                        "type": "string",
-                        "description": "The path to the PDF or text document to analyze."
-                    },
-                    "keywords": {
-                        "type": "array",
-                        "description": "A list of keywords to search for in the document."
-                    }
-                },
-                "required": [
-                    "file_path",
-                    "keywords"
                 ]
             }
         }
@@ -172,20 +152,18 @@
         "type": "function",
         "function": {
             "name": "execute_code",
-            "description": "Executes Python code from a file or a string and returns the final result.",
+            "description": "Executes Python code from a file and returns the final result.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "file_path": {
                         "type": "string",
                         "description": "The path to the file containing the Python code to execute."
-                    },
-                    "code_string": {
-                        "type": "string",
-                        "description": "The Python code as a string to execute."
                     }
                 },
-                "required": []
+                "required": [
+                    "file_path"
+                ]
             }
         }
     },
@@ -250,33 +228,6 @@
                 },
                 "required": [
                     "numbers"
-                ]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "retrieve_knowledge",
-            "description": "Retrieves knowledge from a database with a provided query.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "The query to search for in the vector store."
-                    },
-                    "n_results": {
-                        "type": "integer",
-                        "description": "The number of results to return. Default is 1."
-                    },
-                    "distance_threshold": {
-                        "type": "number",
-                        "description": "The minimum distance score for results. Default is 0.5."
-                    }
-                },
-                "required": [
-                    "query"
                 ]
             }
         }

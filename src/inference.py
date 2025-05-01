@@ -9,17 +9,18 @@ from src.utils.tooling import generate_tools_json
 from src.tools import (
     web_search,
     visit_webpage,
-    load_file,
+    retrieve_knowledge,
+    #load_file,
     reverse_text,
     analyze_chess,
-    analyze_document,
+    #analyze_document,
     classify_foods,
     transcribe_audio,
     execute_code,
     analyze_excel,
     analyze_youtube_video,
     calculate_sum,
-    retrieve_knowledge,
+
 )
 
 load_dotenv()
@@ -34,17 +35,18 @@ class Agent:
         self.names_to_functions = {
             "web_search": web_search,
             "visit_webpage": visit_webpage,
-            "load_file": load_file,
+            "retrieve_knowledge": retrieve_knowledge,
+            #"load_file": load_file,
             "reverse_text": reverse_text,
             "analyze_chess": analyze_chess,
-            "analyze_document": analyze_document,
+            #"analyze_document": analyze_document,
             "classify_foods": classify_foods,
             "transcribe_audio": transcribe_audio,
             "execute_code": execute_code,
             "analyze_excel": analyze_excel,
             "analyze_youtube_video": analyze_youtube_video,
             "calculate_sum": calculate_sum,
-            "retrieve_knowledge": retrieve_knowledge,
+
         }
         self.log = []
         self.tools = self.get_tools()
@@ -66,17 +68,18 @@ class Agent:
             [
                 web_search,
                 visit_webpage,
-                load_file,
+                retrieve_knowledge,
+                #load_file,
                 reverse_text,
                 analyze_chess,
-                analyze_document,
+                #analyze_document,
                 classify_foods,
                 transcribe_audio,
                 execute_code,
                 analyze_excel,
                 analyze_youtube_video,
                 calculate_sum,
-                retrieve_knowledge,
+
             ]
         ).get('tools')
 

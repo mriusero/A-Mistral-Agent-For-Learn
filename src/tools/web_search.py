@@ -1,7 +1,7 @@
 from src.utils.tooling import tool
 
 @tool
-def web_search(query: str, max_results: int = 3, timeout: int = 1) -> str:
+def web_search(query: str, max_results: int = 3, timeout: int = 10) -> str:
     """
     Performs a web search based on the query and returns the top search results.
     Args:
