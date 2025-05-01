@@ -11,3 +11,12 @@ chess
 SpeechRecognition
 pypdf2
 isodate
+chromadb
+html2markdown
+fastapi
+uvicorn
+readability-lxml
+pydantic
+aiohttp
+markdown
+lxml[html_clean]
