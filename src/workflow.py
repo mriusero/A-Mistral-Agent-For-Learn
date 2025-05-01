@@ -36,6 +36,9 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
     results_log = []
     answers_payload = []
 
+    #chosen_task_id = "7bd855d8-463d-4ed5-93ca-5fe35145f733"
+    #questions_data = [item for item in questions_data if item.get("task_id") == chosen_task_id]
+
     for item in questions_data:
 
         task_id = item.get("task_id")
