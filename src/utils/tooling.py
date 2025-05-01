@@ -46,6 +46,12 @@ def tool(func):
                 param_type = 'integer'
             elif param_type == 'list':
                 param_type = 'array'
+            elif param_type == 'float':
+                param_type = 'number'
+            elif param_type == 'bool':
+                param_type = 'boolean'
+            elif param_type == 'dict':
+                param_type = 'object'
 
         param_description = f"The {param_name}."
 

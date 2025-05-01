@@ -21,10 +21,23 @@ def analyze_excel(file_path: str, sheet_name: str = None, specific_columns: list
         if specific_columns:
             df = df[specific_columns]
 
-        print(df.dtypes)
+        result = f"# Excel file loaded successfully !\n\n"
 
-        markdown_table = df.to_markdown(index=False)
-        return f"Excel file contains:\n\n{markdown_table}"
+        result += f"## Structure of the data\n     * `{len(df)} rows`\n     * `{len(df.columns)} columns`\n\n"
+
+        result += f"## Columns\n\n     {', '.join(df.columns)}\n\n"
+
+        result += "## Raw table\n\n"
+        result += df.to_markdown(index=False)
+        result += "\n\n"
+
+        #result += "## Summary statistics\n\n"
+        #result += df.describe().to_markdown()
+        #result += "\n\n"
+
+        result += "## Recommendations\n\n(WARNING) Identify the columns that are relevant to your analysis before proceed to any calculus.\n\n"
+
+        return result
 
     except FileNotFoundError:
         return "File not found. Please check the file path."

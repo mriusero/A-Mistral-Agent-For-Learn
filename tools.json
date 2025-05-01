@@ -9,7 +9,7 @@
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "The search query to perform."
+                        "description": "The search query to perform (Warning: have to be concise and precise)."
                     },
                     "max_results": {
                         "type": "integer",
@@ -87,13 +87,13 @@
         "type": "function",
         "function": {
             "name": "analyze_chess",
-            "description": "Analyzes a chess position from an image and determines the best next move.",
+            "description": "Analyzes a chess position from an image and return the game situation in FEN format.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "image_path": {
                         "type": "string",
-                        "description": "The path to the image file containing the chess position."
+                        "description": "The path to the image file containing the chess game."
                     }
                 },
                 "required": [
@@ -238,22 +238,17 @@
     {
         "type": "function",
         "function": {
-            "name": "calculate",
-            "description": "Performs a mathematical operation on a list of numbers.",
+            "name": "calculate_sum",
+            "description": "Calculates the sum of a list of numbers.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "operation": {
-                        "type": "string",
-                        "description": "The operation to perform. Can be \"sum\", \"multiply\", \"subtract\", or \"divide\"."
-                    },
                     "numbers": {
                         "type": "array",
-                        "description": "A list of numerical values to perform the operation on."
+                        "description": "A list of numbers to be summed from the question."
                     }
                 },
                 "required": [
-                    "operation",
                     "numbers"
                 ]
             }

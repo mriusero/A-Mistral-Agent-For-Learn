@@ -5,7 +5,7 @@ def web_search(query: str, max_results: int = 3, timeout: int = 1) -> str:
     """
     Performs a web search based on the query and returns the top search results.
     Args:
-        query (str): The search query to perform.
+        query (str): The search query to perform (Warning: have to be concise and precise).
         max_results (int, optional): The maximum number of results to return. Defaults to 10.
         timeout (int, optional): Timeout for the search request in seconds. Defaults to 10.
         region (str, optional): Region code for the search. Defaults to 'wt-wt' (worldwide).

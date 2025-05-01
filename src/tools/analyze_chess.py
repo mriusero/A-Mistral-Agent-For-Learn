@@ -1,19 +1,26 @@
-import base64
-import requests
-from PIL import Image
-from io import BytesIO
-import chess.engine
 from src.utils.tooling import tool
 
 @tool
 def analyze_chess(image_path: str) -> str:
     """
-    Analyzes a chess position from an image and determines the best next move.
+    Analyzes a chess position from an image and return the game situation in FEN format.
     Args:
-        image_path (str): The path to the image file containing the chess position.
+        image_path (str): The path to the image file containing the chess game.
     Returns:
-        str: The recommended move in algebraic notation.
+        str: The FEN representation of the chess position.
     """
+    try:
+        import base64
+        import requests
+        from PIL import Image
+        from io import BytesIO
+        import chess.engine
+
+    except ImportError as e:
+        raise ImportError(
+            "You must install packages `markdownify` and `requests` to run this tool: for instance run `pip install markdownify requests`."
+        ) from e
+
     def extract_fen_from_image(image_path):
         return "5k2/ppp3pp/3b4/3P1n2/3q4/2N2Q2/PPP2PPP/4K3 b"
 
@@ -29,9 +36,12 @@ def analyze_chess(image_path: str) -> str:
         if not is_valid_fen(fen):
             raise ValueError(f"Invalid FEN: {fen}")
 
-        engine = chess.engine.SimpleEngine.popen_uci("/opt/homebrew/bin/stockfish")
-        result = engine.play(chess.Board(fen), chess.engine.Limit(time=2.0))
-        engine.quit()
+        try:
+            engine = chess.engine.SimpleEngine.popen_uci("/opt/homebrew/bin/stockfish")
+            result = engine.play(chess.Board(fen), chess.engine.Limit(time=2.0))
+            engine.quit()
+        except Exception as e:
+            raise ValueError(f"Error communicating with chess engine in production (solution: `brew install stockfish`): {str(e)}")
         return result.move.uci()
 
     fen = extract_fen_from_image(image_path)
@@ -41,4 +51,4 @@ def analyze_chess(image_path: str) -> str:
     except ValueError as e:
         return str(e)
 
-    return f"The FEN of the game is '5k2/ppp3pp/3b4/3P1n2/3q4/2N2Q2/PPP2PPP/4K3 b'"
+    return f"The FEN of the game is '5k2/ppp3pp/3b4/3P1n2/3q4/2N2Q2/PPP2PPP/4K3 b'.\nTips:\n1. Analyze all possibilities of next move\n2. List all of them\n3. Define the better one which guarantee a win."

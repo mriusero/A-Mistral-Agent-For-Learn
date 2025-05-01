@@ -18,7 +18,7 @@ from src.tools import (
     execute_code,
     analyze_excel,
     analyze_youtube_video,
-    calculator,
+    calculate_sum,
 )
 
 load_dotenv()
@@ -42,7 +42,7 @@ class Agent:
             "execute_code": execute_code,
             "analyze_excel": analyze_excel,
             "analyze_youtube_video": analyze_youtube_video,
-            "calculator": calculator,
+            "calculate_sum": calculate_sum,
         }
         self.log = []
         self.tools = self.get_tools()
@@ -73,7 +73,7 @@ class Agent:
                 execute_code,
                 analyze_excel,
                 analyze_youtube_video,
-                calculator,
+                calculate_sum,
             ]
         ).get('tools')
 

@@ -1,5 +1,5 @@
 # OS
-.DS_Store/
+.DS_Store
 
 # IDE
 .idea/
@@ -13,11 +13,7 @@ my-traffic-analysis-441217-32bda1474a0f.json
 
 # Model
 llm/
-Attachments/
+attachments/
 logs/
 1st_run/
-2nd_run/
 metadata.jsonl
-
-# Utils
-agents_final_questions.json
