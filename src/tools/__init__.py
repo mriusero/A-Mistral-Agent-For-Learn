@@ -10,3 +10,4 @@ from .execute_code import execute_code
 from .analyze_excel import analyze_excel
 from .analyze_youtube_video import analyze_youtube_video
 from .calculator import calculate_sum
+from .retrieve_knowledge import retrieve_knowledge

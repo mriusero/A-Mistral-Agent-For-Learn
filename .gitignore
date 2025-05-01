@@ -11,9 +11,13 @@ my-traffic-analysis-441217-32bda1474a0f.json
 # Python
 *__pycache__/
 
-# Model
+# Project
 llm/
 attachments/
 logs/
 1st_run/
 metadata.jsonl
+tests.py
+
+chroma_db/
+*.bin

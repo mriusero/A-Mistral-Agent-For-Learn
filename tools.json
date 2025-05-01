@@ -253,5 +253,32 @@
                 ]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "retrieve_knowledge",
+            "description": "Retrieves knowledge from a database with a provided query.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "The query to search for in the vector store."
+                    },
+                    "n_results": {
+                        "type": "integer",
+                        "description": "The number of results to return. Default is 5."
+                    },
+                    "similarity_threshold": {
+                        "type": "number",
+                        "description": "The minimum similarity score for results. Default is 0.7."
+                    }
+                },
+                "required": [
+                    "query"
+                ]
+            }
+        }
     }
 ]

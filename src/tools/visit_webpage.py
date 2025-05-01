@@ -1,6 +1,5 @@
-import re
-
 from src.utils.tooling import tool
+from src.utils.vector_store import vectorize, load_in_vector_db
 
 @tool
 def visit_webpage(url: str) -> str:
@@ -11,6 +10,7 @@ def visit_webpage(url: str) -> str:
         url (str): The URL of the webpage to visit.
     """
     try:
+        import re
         import requests
         from markdownify import markdownify
         from requests.exceptions import RequestException
@@ -27,6 +27,14 @@ def visit_webpage(url: str) -> str:
 
         markdown_content = markdownify(response.text).strip()                            # Convert the HTML content to Markdown
         markdown_content = re.sub(r"\n{3,}", "\n\n", markdown_content)      # Remove multiple line breaks
+
+        # Adding metadata
+        metadatas = {
+            "url": url,
+        }
+
+        text_embeddings, chunks = vectorize(markdown_content)   # Vectorize the content
+        load_in_vector_db(text_embeddings, chunks, metadatas=metadatas)              # Load the text embeddings into a FAISS index
 
         return truncate_content(markdown_content, 10000)
 
