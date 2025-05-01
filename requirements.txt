@@ -20,3 +20,4 @@ pydantic
 aiohttp
 markdown
 lxml[html_clean]
+youtube-transcript-api
