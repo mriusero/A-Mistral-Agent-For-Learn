@@ -1,7 +1,7 @@
 ---
 title: A Mistral Agent 
 emoji: 🤖
-colorFrom: gray
+colorFrom: yellow
 colorTo: red
 sdk: gradio
 sdk_version: 5.26.0
