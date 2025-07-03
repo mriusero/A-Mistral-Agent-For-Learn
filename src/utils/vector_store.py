@@ -4,6 +4,7 @@ from mistralai import Mistral
 import numpy as np
 import time
 import chromadb
+from chromadb.config import Settings
 import json
 import hashlib
 
@@ -171,7 +172,7 @@ def retrieve_from_database(query, collection_name=COLLECTION_NAME, n_results=5, 
             "documents": []
         }
         for i, distance in enumerate(raw_results['distances'][0]):
-            if distance >= distance_threshold:
+            if distance <= distance_threshold:
                 filtered_results['ids'].append(raw_results['ids'][0][i])
                 filtered_results['distances'].append(distance)
                 filtered_results['metadatas'].append(raw_results['metadatas'][0][i])
@@ -184,3 +185,52 @@ def retrieve_from_database(query, collection_name=COLLECTION_NAME, n_results=5, 
             return results
     else:
         return raw_results
+
+
+def search_documents(collection_name=COLLECTION_NAME, query=None, query_embedding=None, metadata_filter=None, n_results=10):
+    """
+    Search for documents in a ChromaDB collection.
+
+    :param collection_name: The name of the collection to search within.
+    :param query: The text query to search for (optional).
+    :param query_embedding: The embedding query to search for (optional).
+    :param metadata_filter: A filter to apply to the metadata (optional).
+    :param n_results: The number of results to return (default is 10).
+    :return: The search results.
+    """
+    client = chromadb.PersistentClient(path=PERSIST_DIRECTORY)
+    collection = client.get_collection(collection_name)
+
+    if query:
+        query_embedding = vectorize([query])[0]
+
+    if query_embedding:
+        results = collection.query(query_embeddings=[query_embedding], n_results=n_results, where=metadata_filter)
+    else:
+        results = collection.get(where=metadata_filter, limit=n_results)
+
+    return results
+
+
+def delete_documents(collection_name=COLLECTION_NAME, ids=None):
+    """
+    Delete documents from a ChromaDB collection based on their IDs.
+
+    :param collection_name: The name of the collection.
+    :param ids: A list of IDs of the documents to delete.
+    """
+    client = chromadb.PersistentClient(path=PERSIST_DIRECTORY)
+    collection = client.get_collection(collection_name)
+
+    collection.delete(ids=ids)
+    print(f"Documents with IDs {ids} have been deleted from the collection {collection_name}.")
+
+def delete_collection(collection_name=COLLECTION_NAME):
+    """
+    Delete a ChromaDB collection.
+
+    :param collection_name: The name of the collection to delete.
+    """
+    client = chromadb.PersistentClient(path=PERSIST_DIRECTORY)
+    client.delete_collection(collection_name)
+    print(f"Collection {collection_name} has been deleted.")

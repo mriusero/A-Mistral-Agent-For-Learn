@@ -11,6 +11,7 @@ from src.utils import (
     fetch_questions,
     submit_answers,
     get_file,
+    load_in_vector_db,
 )
 from src.inference import Agent
 
@@ -36,7 +37,7 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
     results_log = []
     answers_payload = []
 
-    #chosen_task_id = "8e867cd7-cff9-4e6c-867a-ff5ddc2550be"
+    #chosen_task_id = "f918266a-b3e0-4914-865d-4faa564f1aef"
     #questions_data = [item for item in questions_data if item.get("task_id") == chosen_task_id]
 
     for item in questions_data:
@@ -71,6 +72,20 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
                 truth=final_answer
             )
 
+            if submitted_answer == final_answer:
+                try:
+                    load_in_vector_db(
+                        markdown_content=f"{question_text}{file_context}\n\nFINAL ANSWER:{submitted_answer}",
+                        #metadatas={
+                        #    "task_id": task_id,
+                        #    "question": question_text,
+                        #    "file_name": file_name,
+                        #},
+                    )
+                    console.print(f"Correct answer vectorized and stored")
+                except Exception as e:
+                    console.print(f"Error loading in vector DB: {e}", style="bold red")
+
             console.print(Panel(f"[bold green]Submitted Answer[/bold green]\n{submitted_answer}", expand=False))
             console.print(Panel(f"The correct final answer is: [bold]{final_answer}[/bold]"))
 
@@ -88,7 +103,6 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
 
     submission_data = {"username": username.strip(), "agent_code": agent_code, "answers": answers_payload}
     result_data = submit_answers(submission_data)
-
     if result_data:
         final_status = (
             f"Submission Successful!\n"
@@ -101,3 +115,4 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
         return final_status, results_df
     else:
         return "Submission Failed.", pd.DataFrame(results_log)
+

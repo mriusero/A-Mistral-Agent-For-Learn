@@ -49,7 +49,8 @@ class Agent:
 
         }
         self.log = []
-        self.tools = self.get_tools()
+        self.first_tools = self.get_tools(first=True)
+        self.all_tools = self.get_tools(first=False)
 
     @staticmethod
     def save_log(messages, task_id, truth, final_answer=None):
@@ -62,26 +63,30 @@ class Agent:
             )
 
     @staticmethod
-    def get_tools():
+    def get_tools(first=None):
         """Generate the tools.json file with the tools to be used by the agent."""
-        return generate_tools_json(
-            [
-                web_search,
-                visit_webpage,
-                retrieve_knowledge,
-                #load_file,
-                reverse_text,
-                analyze_chess,
-                #analyze_document,
-                classify_foods,
-                transcribe_audio,
-                execute_code,
-                analyze_excel,
-                analyze_youtube_video,
-                calculate_sum,
-
-            ]
-        ).get('tools')
+        if first:
+            return generate_tools_json(
+                [retrieve_knowledge]
+            ).get('tools')
+        else:
+            return generate_tools_json(
+                [
+                    web_search,
+                    visit_webpage,
+                    retrieve_knowledge,
+                    # load_file,
+                    reverse_text,
+                    analyze_chess,
+                    # analyze_document,
+                    classify_foods,
+                    transcribe_audio,
+                    execute_code,
+                    analyze_excel,
+                    analyze_youtube_video,
+                    calculate_sum,
+                ]
+            ).get('tools')
 
     def make_initial_request(self, input):
         """Make the initial request to the agent with the given input."""
@@ -92,7 +97,7 @@ class Agent:
             {"role": "user", "content": input},
             {
                 "role": "assistant",
-                "content": "Let's tackle this problem, first I will decompose it into smaller parts and then I will solve each part step by step.",
+                "content": "Let's tackle this problem, ",
                 "prefix": True,
             },
         ]
@@ -104,7 +109,7 @@ class Agent:
             "stop": None,
             "random_seed": None,
             "response_format": None,
-            "tools": self.tools,
+            "tools": self.all_tools,
             "tool_choice": 'auto',
             "presence_penalty": 0,
             "frequency_penalty": 0,
@@ -203,6 +208,6 @@ class Agent:
                 response = self.client.agents.complete(
                     agent_id=self.agent_id,
                     messages=messages,
-                    tools=self.tools,
+                    tools=self.all_tools,
                     tool_choice='auto',
                 )

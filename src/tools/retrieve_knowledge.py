@@ -2,7 +2,7 @@ from src.utils.tooling import tool
 
 def format_the(query, results):
 
-    if results ==  "No relevant data found in the knowledge database. Have you checked any webpages? If so, please try to find more relevant data.":
+    if results ==  "No relevant data found in the knowledge database. Have you checked any webpages or use any tools? If so, please try to find more relevant data.":
         return results
     else:
         formatted_text = f"# Knowledge for '{query}' \n\n"
@@ -10,9 +10,8 @@ def format_the(query, results):
         try:
             for i in range(len(results['documents'])):
                 formatted_text += f"## Document {i + 1} ---\n"
-                formatted_text += f"- Title: {results['metadatas'][i]['title']}\n"
-                formatted_text += f"- URL: {results['metadatas'][i]['url']}\n"
                 formatted_text += f"- Content: '''\n{results['documents'][i]}\n'''\n"
+                formatted_text += f"- Metadata: {results['metadatas'][i]}\n"
                 formatted_text += f"---\n\n"
         except Exception as e:
             return f"Error: Index out of range. Please check the results structure. {str(e)}"
@@ -28,15 +27,19 @@ def retrieve_knowledge(query: str, n_results: int = 2) -> str:
     """
     try:
         from src.utils.vector_store import retrieve_from_database
-        distance_threshold = 0.2
+        distance_threshold = 0.4
         results = retrieve_from_database(
             query=query,
             n_results=n_results,
             distance_threshold=distance_threshold
         )
-        #print(results)
-        return format_the(query, results)
+        results_formatted = format_the(query, results)
+        if results_formatted:
+            return results_formatted
+        else:
+            return "No relevant data found in the knowledge database. Have you checked any webpages or use any tools? If so, please try to find more relevant data."
 
     except Exception as e:
-        return f"An unexpected error occurred: {str(e)}"
+        print(f"Error retrieving knowledge: {e}")
+        return f"No relevant data found in the knowledge database. Have you checked any webpages or use any tools? If so, please try to find more relevant data."
 
