@@ -1,8 +1,8 @@
 ---
 title: A Mistral Agent 
 emoji: 🤖
-colorFrom: white
-colorTo: orange
+colorFrom: gray
+colorTo: yellow
 sdk: gradio
 sdk_version: 5.26.0
 app_file: app.py
