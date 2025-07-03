@@ -1,5 +1,3 @@
-<!--
-
 ---
 title: A Mistral Agent 
 emoji: 🤖
@@ -13,7 +11,5 @@ hf_oauth: true
 hf_oauth_expiration_minutes: 480
 short_description: A Mistral Agent for GAIA Benchmark Level 1.
 ---
-
--->
 
 Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
